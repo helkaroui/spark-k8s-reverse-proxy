@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <title>{{.title}}</title>
+  </head>
+  <body class="bg-light">
+    <div class="container">
+    <header>
+        <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom">
+          <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="-7.872 -3.87 66.541 66.28" height="64" width="64" fill="#e25a1c"><path d="M42.915 42.1l-.303-.644-6.62-12.55c-.224-.42-.196-.67.1-1.027l10.473-12.3c.122-.144.233-.298.28-.554l-3.058.8-12.7 3.375c-.394.106-.573-.01-.77-.336L23.105 6.848c-.125-.208-.26-.4-.525-.585l-.582 3.207-2.013 11.33-.208 1.224c-.034.4-.234.534-.586.645L4.24 27.394c-.22.07-.432.158-.667.372l12.3 4.884-.36.283L7.86 37.88a.81.81 0 0 1-.887.072l-9.146-4.076c-1.368-.6-2.6-1.423-3.558-2.595-2.167-2.65-1.74-5.667 1.148-7.5.945-.603 2.018-1.055 3.088-1.404l14.686-4.665c.4-.128.6-.312.677-.757l2-11.33c.364-2.018.558-4.1 1.54-5.938.377-.7.83-1.408 1.367-2.004 1.945-2.16 4.66-2.242 6.716-.186.694.694 1.3 1.513 1.807 2.353L34 10.986c.262.44.5.53.984.4L51.4 7.025c1.128-.298 2.27-.407 3.427-.2 2.52.472 3.623 2.4 2.77 4.826-.388 1.1-1.058 2.047-1.8 2.932L44.34 28.05c-.313.366-.32.63-.103 1.04l6.822 12.934c.544 1.032.96 2.103.97 3.288.027 2.696-1.944 4.902-4.623 5.294-1.5.22-2.894-.1-4.3-.534l-10.3-3.133c-.318-.095-.44-.22-.496-.563l-1.242-7.24c-.012-.066.008-.138.018-.286l11.82 3.26" fill-rule="evenodd"/><path d="M15.863 32.65l2.18.95L15.62 52.9l13.244-14.68 2.233.627 2.75 8.36-3.574-1.26-9.248 9.984s-4.136 4.282-6.378 3.56-4.134-2.72-4.344-6.292-1.156-13.77-1.156-13.77l-4.52-3.258z"/><path d="M9.146 39.43S7.15 61.503 11.038 62.238s-.42-.105-.42-.105 2.207 2.523 10.93-6.832l8.724-9.354-17.448 10.3c.42-.526 2.207-18.394 2.207-18.394z"/></svg>
+            <span class="fs-4">{{.title}}</span>
+          </a>
+        </div>
+
+        <div class="pricing-header p-3 pb-md-4 mx-auto">
+          <p class="fs-5 text-muted">Simple and effective way Spark UI replacement on k8s.</p>
+        </div>
+      </header>
+    <main>
+    <div class="row g-5">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Driver</th>
+              <th scope="col">Name</th>
+              <th scope="col">Status</th>
+              <th scope="col">Start Time</th>
+              <th scope="col">Finish Time</th>
+              <th scope="col">Duration</th>
+              <th scope="col">Labels</th>
+              <th scope="col">Logs</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            {{range $key, $value := .apps}}
+                <tr>
+                  <th scope="row">{{ $key }}</th>
+                  <td><a class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover" href="/proxy/{{$value.Id}}/jobs/">{{$value.Driver}}</a></td>
+                  <td>{{$value.Name}}</td>
+                  <td>{{$value.Status}}</td>
+                  <td>{{$value.StartTime}}</td>
+                  <td>{{$value.EndTime}}</td>
+                  <td>{{$value.Duration}}</td>
+                  <td>
+                    {{range $labelKey, $label := $value.Labels}}
+                        <span class="badge bg-warning text-dark">{{$labelKey}}: {{$label}}</span><br/>
+                    {{end}}
+                  </td>
+                  <td><a role="button" class="btn btn-dark" href="/logs/{{$value.Driver}}">Logs</a></td>
+                </tr>
+            {{end}}
+
+          </tbody>
+        </table>
+    </div>
+    </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+  </body>
+</html>

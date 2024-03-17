@@ -108,3 +108,5 @@ fabric.properties
 
 !.idea/codeStyles
 !.idea/runConfigurations
+
+.DS_Store

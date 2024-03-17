@@ -1,0 +1,3 @@
+bases:
+  - services/spark-job
+  - services/spark-reverse-proxy

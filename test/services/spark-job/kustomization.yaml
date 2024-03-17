@@ -1,0 +1,4 @@
+resources:
+  - job-1.yaml
+  - job-2.yaml
+  - job-3.yaml

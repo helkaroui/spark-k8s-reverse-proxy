@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: compute-pi-1
+spec:
+  suspend: false
+  template:
+    metadata:
+      labels:
+        spark-role: driver
+    spec:
+      containers:
+        - name: spark-job
+          image: spark-image
+          args:
+            - "10000"
+          env:
+            - name: SERVICE_ACCOUNT_NAME
+              value: spark-sa
+            - name: SPARK_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: JOB_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          ports:
+            - containerPort: 4040
+              protocol: TCP
+      restartPolicy: Never
+      serviceAccountName: spark-sa

@@ -1,0 +1,29 @@
+# nonk8s
+apiVersion: skaffold/v2beta29
+kind: Config
+metadata:
+  name: spark-reverse-proxy
+
+build:
+  local:
+    useBuildkit: false
+    concurrency: 1
+  tagPolicy:
+    sha256: {}
+  artifacts:
+  - image: spark-image
+    context: services/spark-job
+  - image: spark-reverse-proxy
+    context: ../
+    docker:
+      target: DEV
+    sync:
+      manual:
+        - src: "src/**/*"
+          dest: "/opt/source"
+          strip: "src/"
+
+deploy:
+  kustomize:
+    paths:
+      - ./

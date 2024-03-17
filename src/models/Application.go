@@ -1,5 +1,15 @@
 package models
 
+type Stats struct {
+	Application StatsCount
+	Executors   StatsCount
+}
+
+type StatsCount struct {
+	Running   int
+	Completed int
+}
+
 type Application struct {
 	Id          string
 	Name        string
@@ -10,6 +20,11 @@ type Application struct {
 	Duration    string
 	Labels      map[string]string
 	Annotations map[string]string
+}
+
+type HomePageData struct {
+	Applications []Application
+	Stats        Stats
 }
 
 type StartTimeSorter []Application

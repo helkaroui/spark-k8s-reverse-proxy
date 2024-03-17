@@ -1,0 +1,5 @@
+resources:
+  - deployment.yaml
+  - spark-sa.yaml
+  - reverse-proxy-sa.yaml
+  - ingress.yaml

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-reverse-proxy
+  labels:
+    app: spark-reverse-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-reverse-proxy
+  template:
+    metadata:
+      name: spark-reverse-proxy
+      labels:
+        app: spark-reverse-proxy
+    spec:
+      containers:
+        - name: spark-reverse-proxy
+          image: spark-reverse-proxy
+      imagePullSecrets:
+        - name: regcred
+      serviceAccountName: reverse-proxy-sa
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-reverse-proxy
+spec:
+  selector:
+    app: spark-reverse-proxy
+  ports:
+    - protocol: TCP
+      port: 8000

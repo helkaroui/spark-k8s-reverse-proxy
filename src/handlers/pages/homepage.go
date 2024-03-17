@@ -21,6 +21,7 @@ func Homepage(c *gin.Context, namespace string, k8sClientSet *kubernetes.Clients
 		panic(err.Error())
 	}
 
+	var homeData models.HomePageData
 	var sparkApps []models.Application
 	for _, pod := range pods.Items {
 		var startTime *v1.Time = nil
@@ -39,12 +40,11 @@ func Homepage(c *gin.Context, namespace string, k8sClientSet *kubernetes.Clients
 				_duration := endTime.Time.Sub(containerState.Terminated.StartedAt.Time)
 				duration = &_duration
 			}
-
 		}
 
 		m := models.Application{
 			Id:          pod.Labels["spark-app-selector"],
-			Name:        pod.Labels["spark-app-name"],
+			Name:        getOrElse(pod.Labels["spark-app-name"], pod.Labels["job-name"]),
 			Driver:      pod.Name, //pod.Name,
 			Status:      fmt.Sprint(pod.Status.Phase),
 			StartTime:   fmt.Sprint(startTime),
@@ -58,5 +58,35 @@ func Homepage(c *gin.Context, namespace string, k8sClientSet *kubernetes.Clients
 	}
 
 	sort.Sort(models.StartTimeSorter(sparkApps))
-	c.HTML(http.StatusOK, "index.tmpl", gin.H{"title": "Spark Reverse Proxy", "apps": sparkApps})
+
+	runningApps := len(Filter(sparkApps, func(item models.Application) bool {
+		return item.Status == "Running"
+	}))
+
+	completedApps := len(Filter(sparkApps, func(item models.Application) bool {
+		return item.Status == "Succeeded" || item.Status == "Failed"
+	}))
+
+	homeData.Applications = sparkApps
+	homeData.Stats.Application = models.StatsCount{Running: runningApps, Completed: completedApps}
+	homeData.Stats.Executors = models.StatsCount{Running: 0, Completed: 0}
+
+	c.HTML(http.StatusOK, "index.tmpl", gin.H{"title": "Spark Reverse Proxy", "apps": homeData})
+}
+
+func getOrElse(v1, v2 string) string {
+	if v1 != "" {
+		return v1
+	} else {
+		return v2
+	}
+}
+
+func Filter[T any](source []T, filteredFunc func(item T) bool) (output []T) {
+	for _, item := range source {
+		if filteredFunc(item) {
+			output = append(output, item)
+		}
+	}
+	return output
 }

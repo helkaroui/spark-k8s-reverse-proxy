@@ -5,6 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"os"
+	"path/filepath"
 	"reverse-proxy/handlers"
 	"reverse-proxy/handlers/api"
 	"reverse-proxy/handlers/pages"
@@ -26,19 +30,7 @@ func Run(config Config) {
 
 	serverStartTime := time.Now()
 
-	//Init The k8s client
-	k8sConfig, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
-	}
-
-	//kubeconfig := filepath.Join(homedir.HomeDir(), ".kube", "config")
-	//// use the current context in kubeconfig
-	//k8sConfig, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	//if err != nil {
-	//	panic(err.Error())
-	//}
-	k8sClientSet, err := kubernetes.NewForConfig(k8sConfig)
+	k8sClientSet, err := kubernetes.NewForConfig(getK8sConfig())
 	if err != nil {
 		panic(err.Error())
 	}
@@ -51,6 +43,11 @@ func Run(config Config) {
 	router.GET("/logs/*podName",
 		func(context *gin.Context) {
 			pages.Logs(context)
+		})
+
+	router.GET("/manifest/*podName",
+		func(context *gin.Context) {
+			pages.Manifest(context)
 		})
 
 	router.GET("/health",
@@ -66,6 +63,10 @@ func Run(config Config) {
 		api.Logs(context, config.SparkApplicationNamespace, k8sClientSet)
 	})
 
+	router.GET("/api/manifest/*podName", func(context *gin.Context) {
+		api.Manifest(context, config.SparkApplicationNamespace, k8sClientSet)
+	})
+
 	var appToSvcMap = make(map[string]string)
 
 	router.GET(fmt.Sprintf("/%s/*path", config.ProxyBaseUri),
@@ -74,4 +75,23 @@ func Run(config Config) {
 		})
 
 	router.Run(fmt.Sprintf(":%d", port))
+}
+
+func getK8sConfig() *rest.Config {
+	if os.Getenv("IN_CLUSTER") != "" {
+		k8sConfig, err := rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
+
+		return k8sConfig
+	} else {
+		configPath := filepath.Join(homedir.HomeDir(), ".kube", "config")
+		k8sConfig, err := clientcmd.BuildConfigFromFlags("", configPath)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		return k8sConfig
+	}
 }

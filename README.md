@@ -1,6 +1,6 @@
 # Spark UI for Kubernetes
 
-![CICD](https://github.com/helkaroui/spark-k8s-reverse-proxy/actions/workflows/test-and-build-workflow.yml/badge.svg)
+![CICD](https://github.com/helkaroui/spark-k8s-reverse-proxy/actions/workflows/release.yml/badge.svg)
 ![Docker Image Version](https://img.shields.io/docker/v/helkaroui/spark-reverse-proxy)
 ![Docker Pulls](https://img.shields.io/docker/pulls/helkaroui/spark-reverse-proxy)
 

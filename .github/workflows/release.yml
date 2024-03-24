@@ -1,11 +1,9 @@
-name: Test & Build workflow
-run-name: Running test & build workflows 🚀
+name: Release workflow
+run-name: Running build and release workflow 🚀
 
 on:
-  push:
-    branches:
-      - 'master'
-      - 'releases/**'
+  release:
+    types: [published]
 
 jobs:
   Explore-GitHub-Actions:
@@ -34,4 +32,4 @@ jobs:
           target: runtime
           platforms: linux/amd64
           push: true
-          tags: helkaroui/spark-reverse-proxy:latest,helkaroui/spark-reverse-proxy:1.0.0
+          tags: helkaroui/spark-reverse-proxy:latest,helkaroui/spark-reverse-proxy:${{ github.event.release.tag_name }}

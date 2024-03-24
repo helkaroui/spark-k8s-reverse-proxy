@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine AS BUILD
+FROM golang:1.22-alpine AS build
 
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on
 
@@ -13,10 +13,10 @@ RUN go mod download
 COPY src /opt/source/
 RUN go build -a -o /opt/spark-ui-reverse-proxy main.go
 
-FROM gcr.io/distroless/base as RUNTIME
+FROM gcr.io/distroless/base as runtime
 
-COPY --from=BUILD /opt/spark-ui-reverse-proxy /usr/bin/
-COPY --from=BUILD /opt/source/templates /templates
+COPY --from=build /opt/spark-ui-reverse-proxy /usr/bin/
+COPY --from=build /opt/source/templates /templates
 
 ENV KUBERNETES_SERVICE_HOST="kubernetes.default.svc" \
     KUBERNETES_SERVICE_PORT="443" \
@@ -24,7 +24,7 @@ ENV KUBERNETES_SERVICE_HOST="kubernetes.default.svc" \
 
 ENTRYPOINT ["/usr/bin/spark-ui-reverse-proxy"]
 
-FROM BUILD AS DEV
+FROM build AS dev
 
 RUN go install github.com/cosmtrek/air@latest
 
@@ -35,5 +35,5 @@ COPY src /opt/source/
 ENTRYPOINT ["bash", "/opt/source/entrypoint.sh"]
 
 
-#FROM BUILD AS CICD
+#FROM build AS CICD
 #ENTRYPOINT ["bash", "/opt/source/ci_entrypoint.sh"]

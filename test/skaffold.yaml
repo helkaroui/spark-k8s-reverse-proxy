@@ -16,7 +16,7 @@ build:
   - image: spark-reverse-proxy
     context: ../
     docker:
-      target: DEV
+      target: dev
     sync:
       manual:
         - src: "src/**/*"

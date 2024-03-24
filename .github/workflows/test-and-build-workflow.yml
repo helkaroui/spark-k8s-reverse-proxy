@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          target: RUNTIME
+          target: runtime
           platforms: darwin,linux/amd64,linux/arm64,linux/arm/v7
           push: true
           tags: helkaroui/spark-reverse-proxy:latest,helkaroui/spark-reverse-proxy:1.0.0

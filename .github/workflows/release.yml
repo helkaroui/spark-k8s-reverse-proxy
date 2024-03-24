@@ -33,3 +33,10 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: helkaroui/spark-reverse-proxy:latest,helkaroui/spark-reverse-proxy:${{ github.event.release.tag_name }}
+
+      - name: Update Docker Hub Description
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: helkaroui/spark-reverse-proxy

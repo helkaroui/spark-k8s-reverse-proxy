@@ -2,7 +2,6 @@ package models
 
 type Stats struct {
 	Application StatsCount
-	Executors   StatsCount
 }
 
 type StatsCount struct {

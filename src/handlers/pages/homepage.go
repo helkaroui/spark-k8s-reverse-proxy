@@ -69,7 +69,6 @@ func Homepage(c *gin.Context, namespace string, k8sClientSet *kubernetes.Clients
 
 	homeData.Applications = sparkApps
 	homeData.Stats.Application = models.StatsCount{Running: runningApps, Completed: completedApps}
-	homeData.Stats.Executors = models.StatsCount{Running: 0, Completed: 0}
 
 	c.HTML(http.StatusOK, "index.tmpl", gin.H{"title": "Spark Reverse Proxy", "apps": homeData})
 }

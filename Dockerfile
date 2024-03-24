@@ -33,3 +33,8 @@ ENV PATH="$PATH:/go/bin/linux_amd64"
 COPY src /opt/source/
 
 ENTRYPOINT ["bash", "/opt/source/entrypoint.sh"]
+
+
+FROM BUILD AS CICD
+
+ENTRYPOINT ["bash", "/opt/source/ci_entrypoint.sh"]

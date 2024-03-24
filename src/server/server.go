@@ -67,11 +67,12 @@ func Run(config Config) {
 		api.Manifest(context, config.SparkApplicationNamespace, k8sClientSet)
 	})
 
-	var appToSvcMap = make(map[string]string)
+	var driverToSvcMap = make(map[string]string)
+	var driverToAppIdMap = make(map[string]string)
 
-	router.GET(fmt.Sprintf("/%s/*path", config.ProxyBaseUri),
+	router.GET(fmt.Sprintf("/proxy/*path"),
 		func(context *gin.Context) {
-			proxy.ServeSparkUI(context, &apiConfig, config.SparkApplicationNamespace, fmt.Sprintf("/%s", config.ProxyBaseUri), appToSvcMap, k8sClientSet)
+			proxy.ServeSparkUI(context, &apiConfig, config.SparkApplicationNamespace, fmt.Sprintf("/%s", config.ProxyBaseUri), driverToSvcMap, driverToAppIdMap, k8sClientSet)
 		})
 
 	router.Run(fmt.Sprintf(":%d", port))

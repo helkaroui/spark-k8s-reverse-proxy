@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,19 +15,38 @@ import (
 	"strings"
 )
 
-var sparkUIAppNameURLRegex = regexp.MustCompile("{{\\s*[$]appName\\s*}}")
+var sparkUIAppNameURLRegex = regexp.MustCompile("{{\\s*[$]driverIP\\s*}}")
 var sparkUIAppNamespaceURLRegex = regexp.MustCompile("{{\\s*[$]appNamespace\\s*}}")
+var sparkUIAppIdRegex = regexp.MustCompile(`(?m)\/proxy\/(spark-\w{32})`)
+var sparkUIDriverIdRegex = regexp.MustCompile(`(?m)\/proxy\/([^\/]*)`)
 
-func getSparkUIServiceUrl(sparkUIServiceUrlFormat string, appName string, appNamespace string) string {
-	return sparkUIAppNamespaceURLRegex.ReplaceAllString(sparkUIAppNameURLRegex.ReplaceAllString(sparkUIServiceUrlFormat, appName), appNamespace)
+func getSparkUIServiceUrl(sparkUIServiceUrlFormat string, driverIP string, appNamespace string) string {
+	return sparkUIAppNamespaceURLRegex.ReplaceAllString(sparkUIAppNameURLRegex.ReplaceAllString(sparkUIServiceUrlFormat, driverIP), appNamespace)
 }
 
-func ServeSparkUI(c *gin.Context, config *handlers.ApiConfig, namespace string, uiRootPath string, appToSvcMap map[string]string, k8sClientSet *kubernetes.Clientset) {
+func flattenIPAddress(ip string) string {
+	return strings.ReplaceAll(ip, ".", "-")
+}
+
+func parseId(uri string, regex *regexp.Regexp) (string, error) {
+	match := regex.FindAllStringSubmatch(uri, 1)
+	if len(match) != 0 {
+		return match[0][1], nil
+	} else {
+		return "", errors.New("No Id found in path.")
+	}
+}
+
+func ServeSparkUI(c *gin.Context, config *handlers.ApiConfig, namespace string, uiRootPath string, driverToSvcMap map[string]string, appIdToDriverMap map[string]string, k8sClientSet *kubernetes.Clientset) {
 	path := c.Param("path")
 	// remove / prefix if there is any
 	if strings.HasPrefix(path, "/") {
 		path = path[1:]
 	}
+
+	appId, _ := parseId(c.Request.URL.Path, sparkUIAppIdRegex)
+	driverId, _ := parseId(c.Request.Referer(), sparkUIDriverIdRegex)
+
 	// get application name
 	appName := ""
 	index := strings.Index(path, "/")
@@ -39,29 +58,35 @@ func ServeSparkUI(c *gin.Context, config *handlers.ApiConfig, namespace string, 
 		path = path[index+1:]
 	}
 
-	pods, err := k8sClientSet.CoreV1().Pods(namespace).List(context.TODO(), v1.ListOptions{
-		LabelSelector: fmt.Sprintf("spark-app-selector=%s,spark-role=driver", appName),
-	})
+	if val, ok := appIdToDriverMap[appId]; ok {
+		appName = val
+	} else if driverId != appId {
+		appIdToDriverMap[appId] = driverId
+		appName = driverId
+		log.Printf("Map = %s", appIdToDriverMap)
+	}
 
-	var driverSvc = ""
+	pod, err := k8sClientSet.CoreV1().Pods(namespace).Get(c, appName, v1.GetOptions{})
+	var driverIP = ""
 
-	if val, ok := appToSvcMap[appName]; ok {
-		driverSvc = val
-	} else if len(pods.Items) > 0 {
-		driverSvc = pods.Items[0].Name
-		appToSvcMap[appName] = driverSvc
-		log.Printf("Map = %s", appToSvcMap)
+	if val, ok := driverToSvcMap[appName]; ok {
+		driverIP = val
+	} else if err == nil {
+		driverIP = flattenIPAddress(pod.Status.PodIP)
+		driverToSvcMap[appName] = driverIP
+		log.Printf("Map = %s", driverToSvcMap)
 	}
 
 	// get url for the underlying Spark UI Kubernetes service, which is created by spark-on-k8s-operator
-	sparkUIServiceUrl := getSparkUIServiceUrl(config.SparkUIServiceUrl, driverSvc, config.SparkApplicationNamespace)
+	sparkUIServiceUrl := getSparkUIServiceUrl(config.SparkUIServiceUrl, driverIP, config.SparkApplicationNamespace)
 	proxyBasePath := ""
 	if config.ModifyRedirectUrl {
-		proxyBasePath = fmt.Sprintf("%s/%s", uiRootPath, driverSvc)
+		proxyBasePath = fmt.Sprintf("%s/%s", uiRootPath, appName)
 	}
-	proxy, err := newReverseProxy(sparkUIServiceUrl, path, proxyBasePath, driverSvc)
+
+	proxy, err := newReverseProxy(sparkUIServiceUrl, path, proxyBasePath, appName)
 	if err != nil {
-		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create reverse proxy for application %s: %s", driverSvc, err.Error()))
+		c.AbortWithError(http.StatusInternalServerError, fmt.Errorf("failed to create reverse proxy for application %s: %s", appName, err.Error()))
 		return
 	}
 
@@ -85,10 +110,6 @@ func newReverseProxy(sparkUIServiceUrl string, targetPath string, proxyBasePath 
 		url.RawQuery = req.URL.RawQuery
 		url.RawFragment = req.URL.RawFragment
 		req.URL = url
-
-		//req.Header.Add("X-Forwarded-Context", appName)
-		log.Printf("Reverse proxy: serving backend url %s for originally requested url %s", url, req.URL)
-		log.Printf("Headers X-Forwarded-Context=%s", req.Header.Get("X-Forwarded-Context"))
 	}
 
 	modifyResponse := func(resp *http.Response) error {

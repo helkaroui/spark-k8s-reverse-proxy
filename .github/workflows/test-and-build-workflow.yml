@@ -6,8 +6,6 @@ on:
     branches:
       - 'master'
       - 'releases/**'
-    branches-ignore:
-      - 'releases/**-alpha'
 
 jobs:
   Explore-GitHub-Actions:

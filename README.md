@@ -2,7 +2,7 @@
 
 ![CICD](https://github.com/helkaroui/spark-k8s-reverse-proxy/actions/workflows/test-and-build-workflow.yml/badge.svg)
 ![Docker Image Version](https://img.shields.io/docker/v/helkaroui/spark-reverse-proxy)
-![GitHub License](https://img.shields.io/github/license/helkarou/spark-reverse-proxy)
+![GitHub License](https://img.shields.io/github/license/helkaroui/spark-reverse-proxy)
 
 This is a simple Spark UI reverse proxy to ease accessing the UI when working with Kubernetes.
 

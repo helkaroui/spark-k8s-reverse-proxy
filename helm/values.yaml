@@ -1,0 +1,7 @@
+replicasCount: 1
+
+image:
+  repository: helkaroui/spark-reverse-proxy
+  tag: 1.0.1
+  pullPolicy: IfNotPresent
+

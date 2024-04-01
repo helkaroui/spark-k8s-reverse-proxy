@@ -1,0 +1,9 @@
+apiVersion: v2
+name: spark-reverse-proxy-chart
+description: Helm Chart for Spark-reverse-proxy
+type: application
+version: 0.1.0
+icon: https://cdn.icon-icons.com/icons2/2699/PNG/512/apache_spark_logo_icon_170560.png
+maintainers:
+  - email: helkarou@gmail.com
+    name: Hamza KAROUI

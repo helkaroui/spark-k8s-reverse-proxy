@@ -17,14 +17,12 @@ Driver's Logs Page :
 Driver's Manifest Page :
 ![](docs/screenshot-manifest.png)
 
-## Usage
+## Architecture
+The reverse proxy is deployed as an application inside the kubernetes cluster and can route traffic from an ingress to the spark driver ui.
 
-```
-docker pull helkaroui/spark-reverse-proxy:latest
-```
+![](docs/diagram.jpg)
 
 ## Setup
-
 The reverse proxy relies on label selection to list spark drivers, thus you need to add the following label depending on
 submission mode :
 - In client mode: you need to add the label `spark-role=driver` and expose port 4040
@@ -39,6 +37,24 @@ In the spark submit command, you need to enable reverse proxy as follows :
     ...\
     --conf spark.ui.reverseProxy=true \
     file:///opt/spark/examples/jars/spark-examples_2.12-3.5.0.jar "$1"
+```
+
+## Usage
+### Docker
+TBC
+```
+docker pull helkaroui/spark-reverse-proxy:latest
+```
+
+### Kubectl
+TBC
+
+
+### Helm
+To install using Helm chart :
+```bash
+# Clone the repository then run :
+helm install my-release ./helm
 ```
 
 ## Development

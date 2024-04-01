@@ -1,0 +1,22 @@
+{{- if not (lookup "networking.k8s.io/v1" "Ingress" .Release.Namespace .Release.Name ) -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-ingress
+  annotations:
+    # helm deletes the object is present due to above "if not" condition
+    # add annotation to keep the object
+    helm.sh/resource-policy: keep
+spec:
+  rules:
+    - host: localhost
+      http:
+        paths:
+          - backend:
+              service:
+                name: {{ .Release.Name }}-svc
+                port:
+                  number: 8000
+            path: /
+            pathType: Prefix
+{{ end }}
